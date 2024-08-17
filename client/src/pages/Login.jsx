@@ -15,10 +15,10 @@ export default function Login() {
   //   Date of birth handler function
 
   const handleDobChange = (e) => {
-    const date = new Date(e.target.value);
-    const today = new Date();
-    const age = today.getFullYear() - date.getFullYear();
-    const month = today.getMonth() - date.getMonth();
+    let date = new Date(e.target.value);
+    let today = new Date();
+    let age = today.getFullYear() - date.getFullYear();
+    let month = today.getMonth() - date.getMonth();
 
     if (month < 0 || (month === 0 && today.getDate() < date.getDate())) {
       age--;
