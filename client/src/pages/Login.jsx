@@ -1,12 +1,55 @@
 import { useState } from "react";
+import { useMutation } from "react-query";
+import axios from "axios";
 import { FaSquarePlus } from "react-icons/fa6";
 import { IoTrashOutline } from "react-icons/io5";
 
+// form Submit handler
+const submitForm = async (formData) => {
+  const response = await axios.post("/", formData);
+  return response.data;
+};
+
 export default function Login() {
-  const [dob, setDob] = useState("");
+
+  const { mutate, isLoading, isError, isSuccess } = useMutation(submitForm);
   const [ageError, setAgeError] = useState("");
   const [sameAsResidential, setSameAsResidential] = useState(false);
-  const [files, setFiles] = useState([{ name: "", type: "", file: null }]);
+
+  // form input fileds
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [dob, setDob] = useState("");
+  const [ressAddress, setRessAddress] = useState({
+    street1: "",
+    street2: "",
+  });
+  const [perAddress, setPerAddress] = useState({
+    street1: "",
+    street2: "",
+  });
+  const [files, setFiles] = useState({
+    file1: { name: "", type: "", file: null },
+    file2: { name: "", type: "", file: null },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append("firstName", firstName);
+    formData.append("lastName", lastName);
+    formData.append("email", email);
+    formData.append("dob", dob);
+    formData.append("ressAddress", JSON.stringify(ressAddress)); // stringify the object
+    formData.append("perAddress", JSON.stringify(perAddress)); // stringify the object
+    Array.from(files).forEach((file, index) => {
+      formData.append(`file${index + 1}`, file);
+    });
+
+    mutate(formData);
+  };
 
   // Date of birth handler function
   const handleDobChange = (e) => {
@@ -29,61 +72,32 @@ export default function Login() {
 
   // Residential handler function
   const handleCheckboxChange = () => {
-    setSameAsResidential(!sameAsResidential);
+    setSameAsResidential((prevSameAsResidential) => {
+      const newValue = !prevSameAsResidential;
+
+      if (newValue) {
+        setPerAddress(ressAddress);
+      }
+
+      return newValue; // Toggle the checkbox value
+    });
   };
 
   // File handler function
-  const handleFileChange = (index, e) => {
-    const newFiles = [...files];
-    const selectedFile = e.target.files[0];
-
-    if (
-      (newFiles[index].type === "pdf" &&
-        selectedFile.type !== "application/pdf") ||
-      (newFiles[index].type === "image" &&
-        !selectedFile.type.startsWith("image/"))
-    ) {
-      alert("Invalid file type!");
-    } else {
-      newFiles[index].file = selectedFile;
-    }
-
-    setFiles(newFiles);
+  const handleInputChange = (e, field, index) => {
+    const value = e.target.value;
+    setFiles((prevFiles) => ({
+      ...prevFiles,
+      [`file${index}`]: { ...prevFiles[`file${index}`], [field]: value },
+    }));
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Create a FormData object
-    const formData = new FormData();
-
-    // Append basic form fields
-    formData.append("dob", dob);
-    formData.append("sameAsResidential", sameAsResidential);
-
-    // Append files
-    files.forEach((file, index) => {
-      if (file.file) {
-        formData.append(`file${index}`, file.file);
-        formData.append(`fileName${index}`, file.name);
-        formData.append(`fileType${index}`, file.type);
-      }
-    });
-
-    try {
-      // Send form data using axios
-      const response = await axios.post("YOUR_API_ENDPOINT_HERE", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      console.log("Form submitted successfully:", response.data);
-      // Handle success response here
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      // Handle error response here
-    }
+  const handleFileChange = (e, index) => {
+    const file = e.target.files[0];
+    setFiles((prevFiles) => ({
+      ...prevFiles,
+      [`file${index}`]: { ...prevFiles[`file${index}`], file },
+    }));
   };
 
   return (
@@ -110,6 +124,8 @@ export default function Login() {
               <input
                 id="first-name"
                 name="first-name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 type="text"
                 autoComplete="given-name"
                 placeholder="Enter your first name here ..."
@@ -131,6 +147,8 @@ export default function Login() {
                 id="last-name"
                 name="last-name"
                 type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 autoComplete="family-name"
                 placeholder="Enter your last name here ..."
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -150,7 +168,9 @@ export default function Login() {
               <input
                 id="e-mail"
                 name="e-mail"
-                type="text"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 placeholder="ex: myname@example.com"
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -199,6 +219,10 @@ export default function Login() {
                   id="residentail-address-st1"
                   name="residentail-address-st1"
                   type="text"
+                  value={ressAddress.street1}
+                  onChange={(e) =>
+                    setRessAddress({ ...ressAddress, street1: e.target.value })
+                  }
                   autoComplete="residentail-address1"
                   placeholder="Enter your first name here ..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -218,6 +242,10 @@ export default function Login() {
                   id="residentail-address-st2"
                   name="residentail-address-st2"
                   type="text"
+                  value={ressAddress.street2}
+                  onChange={(e) =>
+                    setRessAddress({ ...ressAddress, street2: e.target.value })
+                  }
                   autoComplete="residentail-address2"
                   placeholder="Enter your last name here ..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -232,8 +260,6 @@ export default function Login() {
             {/* Checkbox function  */}
             <div className="mt-2.5 col-span-2 flex items-center">
               <input
-                defaultValue={"option.value"}
-                defaultChecked={"option.checked"}
                 id="address-checkbox"
                 name="address-checkbox"
                 checked={sameAsResidential}
@@ -268,6 +294,13 @@ export default function Login() {
                       id="permanent-address-st1"
                       name="permanent-address-st1"
                       type="text"
+                      value={perAddress.street1}
+                      onChange={(e) =>
+                        setPerAddress({
+                          ...perAddress,
+                          street1: e.target.value,
+                        })
+                      }
                       autoComplete="permanent-address1"
                       placeholder="Enter your street 1 ..."
                       className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -287,6 +320,13 @@ export default function Login() {
                       id="permanent-address-st2"
                       name="permanent-address-st2"
                       type="text"
+                      value={perAddress.street2}
+                      onChange={(e) =>
+                        setPerAddress({
+                          ...perAddress,
+                          street2: e.target.value,
+                        })
+                      }
                       autoComplete="permanent-address2"
                       placeholder="Enter your street 2 ..."
                       className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -316,6 +356,8 @@ export default function Login() {
                   id="file-name-fs1"
                   name="file-name-fs1"
                   type="text"
+                  value={files.file1.name}
+                  onChange={(e) => handleInputChange(e, "name", 1)}
                   autoComplete="given-name"
                   placeholder="Enter File Name..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -335,6 +377,8 @@ export default function Login() {
                 <select
                   id="file-type-fs1"
                   name="file-type-fs1"
+                  value={files.file1.type}
+                  onChange={(e) => handleInputChange(e, "type", 1)}
                   autoComplete="file Type"
                   placeholder="Type of file"
                   className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -360,7 +404,7 @@ export default function Login() {
                   name="file-fs1"
                   type="file"
                   autoComplete="family-name"
-                  placeholder=""
+                  onChange={(e) => handleFileChange(e, 1)}
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 />
               </div>
@@ -386,6 +430,8 @@ export default function Login() {
                   id="file-name-fs2"
                   name="file-name-fs2"
                   type="text"
+                  value={files.file2.name}
+                  onChange={(e) => handleInputChange(e, "name", 2)}
                   autoComplete="given-name"
                   placeholder="Enter File Name..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -405,6 +451,8 @@ export default function Login() {
                 <select
                   id="country"
                   name="file-type-fs2"
+                  value={files.file2.type}
+                  onChange={(e) => handleInputChange(e, "type", 2)}
                   autoComplete="file-type-fs2"
                   placeholder="Type of file"
                   className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -429,8 +477,8 @@ export default function Login() {
                   id="file-fs2"
                   name="file-fs2"
                   type="file"
+                  onChange={(e) => handleFileChange(e, 2)}
                   autoComplete="family-name"
-                  placeholder=""
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 />
               </div>
@@ -450,9 +498,17 @@ export default function Login() {
             type="submit"
             className="block rounded-sm bg-black px-10 py-4 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
           >
-            Submit
+            {isLoading ? "Submiting..." : "Submit"}
           </button>
         </div>
+        {isError && (
+          <p className="text-xs text-red-500">
+            There was an error submitting the form.
+          </p>
+        )}
+        {isSuccess && (
+          <p className="text-sm text-green-700">Form submitted successfully!</p>
+        )}
       </form>
     </div>
   );
