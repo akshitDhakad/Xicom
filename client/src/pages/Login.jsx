@@ -1,8 +1,4 @@
-"use client";
-
 import { useState } from "react";
-// import { ChevronDownIcon } from "@heroicons/react/20/solid";
-// import { Field, Label, Switch } from "@headlessui/react";
 import { FaSquarePlus } from "react-icons/fa6";
 import { IoTrashOutline } from "react-icons/io5";
 
@@ -12,13 +8,12 @@ export default function Login() {
   const [sameAsResidential, setSameAsResidential] = useState(false);
   const [files, setFiles] = useState([{ name: "", type: "", file: null }]);
 
-  //   Date of birth handler function
-
+  // Date of birth handler function
   const handleDobChange = (e) => {
-    let date = new Date(e.target.value);
-    let today = new Date();
+    const date = new Date(e.target.value);
+    const today = new Date();
     let age = today.getFullYear() - date.getFullYear();
-    let month = today.getMonth() - date.getMonth();
+    const month = today.getMonth() - date.getMonth();
 
     if (month < 0 || (month === 0 && today.getDate() < date.getDate())) {
       age--;
@@ -33,12 +28,11 @@ export default function Login() {
   };
 
   // Residential handler function
-
   const handleCheckboxChange = () => {
     setSameAsResidential(!sameAsResidential);
   };
 
-  //   file handler function
+  // File handler function
   const handleFileChange = (index, e) => {
     const newFiles = [...files];
     const selectedFile = e.target.files[0];
@@ -57,22 +51,39 @@ export default function Login() {
     setFiles(newFiles);
   };
 
-  //   file button function
-  const addFile = () => {
-    setFiles([...files, { name: "", type: "", file: null }]);
-  };
-
-  const removeFile = (index) => {
-    setFiles(files.filter((_, i) => i !== index));
-  };
-
-  //   form submition handler
-
-  const handleSubmit = (e) => {
+  // Handle form submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all fields here
-    // If all fields are valid, submit the form data
+    // Create a FormData object
+    const formData = new FormData();
+
+    // Append basic form fields
+    formData.append("dob", dob);
+    formData.append("sameAsResidential", sameAsResidential);
+
+    // Append files
+    files.forEach((file, index) => {
+      if (file.file) {
+        formData.append(`file${index}`, file.file);
+        formData.append(`fileName${index}`, file.name);
+        formData.append(`fileType${index}`, file.type);
+      }
+    });
+
+    try {
+      // Send form data using axios
+      const response = await axios.post("YOUR_API_ENDPOINT_HERE", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Form submitted successfully:", response.data);
+      // Handle success response here
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Handle error response here
+    }
   };
 
   return (
@@ -106,6 +117,7 @@ export default function Login() {
               />
             </div>
           </div>
+
           {/* Last Name  */}
           <div>
             <label
@@ -125,6 +137,7 @@ export default function Login() {
               />
             </div>
           </div>
+
           {/* E-mail */}
           <div>
             <label
@@ -138,28 +151,28 @@ export default function Login() {
                 id="e-mail"
                 name="e-mail"
                 type="text"
-                autoComplete="given-name"
+                autoComplete="email"
                 placeholder="ex: myname@example.com"
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
               />
             </div>
           </div>
+
           {/* Date of Birth  */}
           <div>
             <label
-              htmlFor="date-of-birth"
+              htmlFor="dob"
               className="block text-sm font-semibold leading-6 text-gray-900"
             >
               Date of Birth<span className="text-red-500 text-xl">*</span>
             </label>
             <div className="mt-2.5">
               <input
-                id="ldate-of-birth"
-                name="date-of-birth"
+                id="dob"
+                name="dob"
                 value={dob}
                 onChange={handleDobChange}
                 type="date"
-                placeholder="Enter your last name here ..."
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
               />
             </div>
@@ -176,17 +189,17 @@ export default function Login() {
             {/* Street 1 */}
             <div>
               <label
-                htmlFor="first-name"
+                htmlFor="residentail-address-st1"
                 className="block text-sm leading-6 text-gray-600"
               >
                 Steet 1<span className="text-red-500 text-xl">*</span>
               </label>
               <div className="mt-1">
                 <input
-                  id="first-name"
-                  name="first-name"
+                  id="residentail-address-st1"
+                  name="residentail-address-st1"
                   type="text"
-                  autoComplete="given-name"
+                  autoComplete="residentail-address1"
                   placeholder="Enter your first name here ..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 />
@@ -195,17 +208,17 @@ export default function Login() {
             {/* Street 2 */}
             <div>
               <label
-                htmlFor="last-name"
+                htmlFor="residentail-address-st2"
                 className="block text-sm leading-6 text-gray-600"
               >
                 Street 2<span className="text-red-500 text-xl">*</span>
               </label>
               <div className="mt-1">
                 <input
-                  id="last-name"
-                  name="last-name"
+                  id="residentail-address-st2"
+                  name="residentail-address-st2"
                   type="text"
-                  autoComplete="family-name"
+                  autoComplete="residentail-address2"
                   placeholder="Enter your last name here ..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 />
@@ -245,15 +258,15 @@ export default function Login() {
                 {/* Street 1 */}
                 <div>
                   <label
-                    htmlFor="permanent-street1"
+                    htmlFor="permanent-address-st1"
                     className="block text-sm leading-6 text-gray-600"
                   >
                     Steet 1<span className="text-red-500 text-xl">*</span>
                   </label>
                   <div className="mt-1">
                     <input
-                      id="permanent-street1"
-                      name="permanent-street1"
+                      id="permanent-address-st1"
+                      name="permanent-address-st1"
                       type="text"
                       autoComplete="permanent-address1"
                       placeholder="Enter your street 1 ..."
@@ -264,15 +277,15 @@ export default function Login() {
                 {/* Street 2 */}
                 <div>
                   <label
-                    htmlFor="permanent-street2"
+                    htmlFor="permanent-address-st2"
                     className="block text-sm leading-6 text-gray-600"
                   >
                     Street 2<span className="text-red-500 text-xl">*</span>
                   </label>
                   <div className="mt-1">
                     <input
-                      id="permanent-street2"
-                      name="permanent-street2"
+                      id="permanent-address-st2"
+                      name="permanent-address-st2"
                       type="text"
                       autoComplete="permanent-address2"
                       placeholder="Enter your street 2 ..."
@@ -293,15 +306,15 @@ export default function Login() {
             {/* File Name */}
             <div className="mt-1.5">
               <label
-                htmlFor="file-name-fs-1"
+                htmlFor="file-name-fs1"
                 className="block text-sm leading-6 text-gray-600"
               >
                 File Name<span className="text-red-500 text-xl">*</span>
               </label>
               <div className="mt-1">
                 <input
-                  id="file-name-fs-1"
-                  name="first-name"
+                  id="file-name-fs1"
+                  name="file-name-fs1"
                   type="text"
                   autoComplete="given-name"
                   placeholder="Enter File Name..."
@@ -313,16 +326,16 @@ export default function Login() {
             {/*Type of File*/}
             <div className="mt-1.5">
               <label
-                htmlFor="file-type-fs-1"
+                htmlFor="file-type-fs1"
                 className="block text-sm leading-6 text-gray-600"
               >
                 Type of File <span className="text-red-500 text-xl">*</span>
               </label>
               <div className="mt-1">
                 <select
-                  id="country"
-                  name="file-type-fs-1"
-                  autoComplete="country-name"
+                  id="file-type-fs1"
+                  name="file-type-fs1"
+                  autoComplete="file Type"
                   placeholder="Type of file"
                   className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 >
@@ -336,15 +349,15 @@ export default function Login() {
             {/*Upload Document*/}
             <div className="mt-1.5">
               <label
-                htmlFor="file-fs-1"
+                htmlFor="file-fs1"
                 className="block text-sm leading-6 text-gray-600"
               >
                 Upload Document <span className="text-red-500 text-xl">*</span>
               </label>
               <div className="mt-1">
                 <input
-                  id="file-fs-1"
-                  name="last-name"
+                  id="file-fs1"
+                  name="file-fs1"
                   type="file"
                   autoComplete="family-name"
                   placeholder=""
@@ -363,15 +376,15 @@ export default function Login() {
             {/* File Name */}
             <div className="mt-1.5">
               <label
-                htmlFor="file-name-fs-2"
+                htmlFor="file-name-fs2"
                 className="block text-sm leading-6 text-gray-600"
               >
                 File Name<span className="text-red-500 text-xl">*</span>
               </label>
               <div className="mt-1">
                 <input
-                  id="file-name-fs-2"
-                  name="first-name"
+                  id="file-name-fs2"
+                  name="file-name-fs2"
                   type="text"
                   autoComplete="given-name"
                   placeholder="Enter File Name..."
@@ -383,7 +396,7 @@ export default function Login() {
             {/*Type of File*/}
             <div className="mt-1.5">
               <label
-                htmlFor="file-type-fs-2"
+                htmlFor="file-type-fs2"
                 className="block text-sm leading-6 text-gray-600"
               >
                 Type of File <span className="text-red-500 text-xl">*</span>
@@ -391,8 +404,8 @@ export default function Login() {
               <div className="mt-1">
                 <select
                   id="country"
-                  name="file-type-fs-2"
-                  autoComplete="country-name"
+                  name="file-type-fs2"
+                  autoComplete="file-type-fs2"
                   placeholder="Type of file"
                   className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 >
@@ -406,15 +419,15 @@ export default function Login() {
             {/*Upload Document*/}
             <div className="mt-1.5">
               <label
-                htmlFor="file-fs-2"
+                htmlFor="file-fs2"
                 className="block text-sm leading-6 text-gray-600"
               >
                 Upload Document <span className="text-red-500 text-xl">*</span>
               </label>
               <div className="mt-1">
                 <input
-                  id="file-fs-2"
-                  name="last-name"
+                  id="file-fs2"
+                  name="file-fs2"
                   type="file"
                   autoComplete="family-name"
                   placeholder=""
