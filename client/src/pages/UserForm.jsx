@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useMutation } from "react-query";
 import axios from "axios";
-import { FaSquarePlus } from "react-icons/fa6";
+import { FaPlus } from "react-icons/fa";
 import { IoTrashOutline } from "react-icons/io5";
 import { AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai";
-
+import { MdOutlineFileUpload } from "react-icons/md";
 // form Submit handler
 const submitForm = async (formData) => {
 
@@ -20,7 +20,8 @@ const submitForm = async (formData) => {
   return response.data;
 };
 
-export default function Login() {
+export default function UserForm() {
+
   const { mutate, isLoading, isError, isSuccess } = useMutation(submitForm);
   const [ageError, setAgeError] = useState("");
   const [emailError, setEmailError] = useState(false);
@@ -48,22 +49,21 @@ export default function Login() {
     e.preventDefault();
 
     //function to validate the age
-     if (ageError) {
+    if (ageError) {
       setDob("");
-       return;
-     }
+      return;
+    }
 
-    // function to validate the email 
+    // function to validate the email
     const validateEmail = (email) => {
       const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       return regex.test(email);
     };
 
-    if(!validateEmail(email)){
+    if (!validateEmail(email)) {
       setEmailError(true);
-      return ;
+      return;
     }
-
 
     const formData = new FormData();
     formData.append("firstName", firstName);
@@ -79,7 +79,7 @@ export default function Login() {
       formData.append("fileTypes", fileObj.type); // Assuming you're capturing file types separately.
     });
 
-    console.log(files)
+    console.log(files);
     mutate(formData);
   };
 
@@ -121,12 +121,11 @@ export default function Login() {
     setFiles([...files, { name: "", type: "", file: null }]);
   };
 
-   const handleRemoveFile = (index) => {
-     const newFiles = [...files];
-     newFiles.splice(index, 1);
-     setFiles(newFiles);
-   };
-
+  const handleRemoveFile = (index) => {
+    const newFiles = [...files];
+    newFiles.splice(index, 1);
+    setFiles(newFiles);
+  };
 
   // File handler function
   const handleInputChange = (e, index, field) => {
@@ -136,27 +135,27 @@ export default function Login() {
     setFiles(newFiles);
   };
 
-   const handleFileChange = (e, index) => {
-     const file = e.target.files[0];
-     if (file) {
-       const { type } = files[index];
-       const allowedExtensions =
-         type === "pdf" ? ["pdf"] : ["image/jpeg", "image/png", "image/gif"];
-       const fileExtension = file.name.split(".").pop().toLowerCase();
+  const handleFileChange = (e, index) => {
+    const file = e.target.files[0];
+    if (file) {
+      const { type } = files[index];
+      const allowedExtensions =
+        type === "pdf" ? ["pdf"] : ["image/jpeg", "image/png", "image/gif"];
+      const fileExtension = file.name.split(".").pop().toLowerCase();
 
-       if (
-         !allowedExtensions.includes(file.type) &&
-         !allowedExtensions.includes(fileExtension)
-       ) {
-         // Handle invalid file type
-         alert(`Invalid file type. Expected ${type} file.`);
-       } else {
-         const newFiles = [...files];
-         newFiles[index].file = file;
-         setFiles(newFiles);
-       }
-     }
-   };
+      if (
+        !allowedExtensions.includes(file.type) &&
+        !allowedExtensions.includes(fileExtension)
+      ) {
+        // Handle invalid file type
+        alert(`Invalid file type. Expected ${type} file.`);
+      } else {
+        const newFiles = [...files];
+        newFiles[index].file = file;
+        setFiles(newFiles);
+      }
+    }
+  };
 
   return (
     <div className="isolate bg-white px-6 py-24 sm:py-32 lg:px-8">
@@ -237,7 +236,11 @@ export default function Login() {
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
               />
             </div>
-            {emailError && <p className="text-red-500 text-xs">Enter a valid email address.</p>}
+            {emailError && (
+              <p className="text-red-500 text-xs">
+                Enter a valid email address.
+              </p>
+            )}
           </div>
 
           {/* Date of Birth  */}
@@ -482,27 +485,29 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="mt-5 flex items-center justify-start">
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveFile(index)}
-                    className="bg-gray-200 p-3 rounded-md"
-                  >
-                    <IoTrashOutline className="text-2xl" />
-                  </button>
-                </div>
+                {index === 0 ? (
+                  <div className="mt-5 flex items-center justify-start">
+                    <button
+                      type="button"
+                      onClick={handleAddFile}
+                      className="rounded-md px-5 py-2 bg-black  text-white "
+                    >
+                      <FaPlus className="text-2xl " />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-5  flex items-center justify-start">
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile(index)}
+                      className=" bg-gray-200 px-5 py-2 rounded-md"
+                    >
+                      <IoTrashOutline className="text-2xl" />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
-
-            <div className="mt-5 flex items-center justify-start">
-              <button
-                type="button"
-                onClick={handleAddFile}
-                className="bg-gray-200 p-3 rounded-md"
-              >
-                <FaSquarePlus className="text-5xl" />
-              </button>
-            </div>
           </div>
         </div>
 
