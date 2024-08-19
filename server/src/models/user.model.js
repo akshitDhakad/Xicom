@@ -1,5 +1,23 @@
 import mongoose, { Schema } from "mongoose";
 
+const fileSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  type: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  filePath: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+});
+
 const userDetailSchema = new Schema({
   fullName: {
     type: String,
@@ -34,17 +52,7 @@ const userDetailSchema = new Schema({
     trim: true,
   },
 
-  file1: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-
-  file2: {
-    type: String,
-    required: true,
-    trim: true,
-  },
+  files: [fileSchema],
 });
 
 export default mongoose.model("UserDetail", userDetailSchema);

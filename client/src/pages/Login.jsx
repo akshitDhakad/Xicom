@@ -7,6 +7,7 @@ import { AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai";
 
 // form Submit handler
 const submitForm = async (formData) => {
+
   const response = await axios.post(
     "http://localhost:8000/api/v1/user-detail",
     formData,
@@ -40,15 +41,12 @@ export default function Login() {
     street1: "",
     street2: "",
   });
-  const [files, setFiles] = useState({
-    file1: { name: "", type: "", file: null },
-    file2: { name: "", type: "", file: null },
-  });
+  const [files, setFiles] = useState([{ name: "", type: "", file: null }]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-     if (ageError || fileErrors.file1 || fileErrors.file2) {
+     if (ageError) {
        return;
      }
 
@@ -59,9 +57,13 @@ export default function Login() {
     formData.append("dob", dob);
     formData.append("ressAddress", JSON.stringify(ressAddress));
     formData.append("perAddress", JSON.stringify(perAddress));
-    Object.keys(files).forEach((key) => {
-      formData.append(key, files[key]); // Append each file with its key
+
+    files.forEach((fileObj, index) => {
+      formData.append(`file${index + 1}`, fileObj.file);
+      formData.append(`name${index + 1}`, fileObj.name);
+      formData.append(`type${index + 1}`, fileObj.type);
     });
+
     mutate(formData);
   };
 
@@ -97,43 +99,48 @@ export default function Login() {
     });
   };
 
+  // ********************** file handler function **********************
+
+  const handleAddFile = () => {
+    setFiles([...files, { name: "", type: "", file: null }]);
+  };
+
+   const handleRemoveFile = (index) => {
+     const newFiles = [...files];
+     newFiles.splice(index, 1);
+     setFiles(newFiles);
+   };
+
+
   // File handler function
-  const handleInputChange = (e, field, index) => {
+  const handleInputChange = (e, index, field) => {
     const value = e.target.value;
-    setFiles((prevFiles) => ({
-      ...prevFiles,
-      [`file${index}`]: { ...prevFiles[`file${index}`], [field]: value },
-    }));
+    const newFiles = [...files];
+    newFiles[index][field] = value;
+    setFiles(newFiles);
   };
 
-  const handleFileChange = (e, index) => {
-    const file = e.target.files[0];
-    if (file) {
-      const { type } = files[`file${index}`];
-      const allowedExtensions =
-        type === "pdf" ? ["pdf"] : ["image/jpeg", "image/png", "image/gif"];
-      const fileExtension = file.name.split(".").pop().toLowerCase();
+   const handleFileChange = (e, index) => {
+     const file = e.target.files[0];
+     if (file) {
+       const { type } = files[index];
+       const allowedExtensions =
+         type === "pdf" ? ["pdf"] : ["image/jpeg", "image/png", "image/gif"];
+       const fileExtension = file.name.split(".").pop().toLowerCase();
 
-      if (
-        !allowedExtensions.includes(file.type) &&
-        !allowedExtensions.includes(fileExtension)
-      ) {
-        setFileErrors((prevErrors) => ({
-          ...prevErrors,
-          [`file${index}`]: `Invalid file type. Expected ${type} file.`,
-        }));
-      } else {
-        setFileErrors((prevErrors) => ({
-          ...prevErrors,
-          [`file${index}`]: "",
-        }));
-        setFiles((prevFiles) => ({
-          ...prevFiles,
-          [`file${index}`]: { ...prevFiles[`file${index}`], file },
-        }));
-      }
-    }
-  };
+       if (
+         !allowedExtensions.includes(file.type) &&
+         !allowedExtensions.includes(fileExtension)
+       ) {
+         // Handle invalid file type
+         alert(`Invalid file type. Expected ${type} file.`);
+       } else {
+         const newFiles = [...files];
+         newFiles[index].file = file;
+         setFiles(newFiles);
+       }
+     }
+   };
 
   return (
     <div className="isolate bg-white px-6 py-24 sm:py-32 lg:px-8">
@@ -381,160 +388,102 @@ export default function Login() {
 
           {/* file Upload  */}
 
-          <div className="col-span-2 grid grid-cols-1  gap-x-8  sm:grid-cols-4">
+          <div className="col-span-2 ">
             <h6 className="col-span-4 font-semibold">Upload Documents</h6>
 
             {/* ******************** file 1 *************************** */}
             {/* File Name */}
-            <div className="mt-1.5">
-              <label
-                htmlFor="file-name-fs1"
-                className="block text-sm leading-6 text-gray-600"
+            {files.map((fileObj, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-2 sm:grid-cols-4 gap-x-8"
               >
-                File Name<span className="text-red-500 text-xl">*</span>
-              </label>
-              <div className="mt-1">
-                <input
-                  id="file-name-fs1"
-                  name="file-name-fs1"
-                  type="text"
-                  value={files.file1.name}
-                  onChange={(e) => handleInputChange(e, "name", 1)}
-                  required
-                  autoComplete="given-name"
-                  placeholder="Enter File Name..."
-                  className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
+                <div className="mt-1.5">
+                  <label
+                    htmlFor={`file-name-fs${index + 1}`}
+                    className="block text-sm leading-6 text-gray-600"
+                  >
+                    File Name<span className="text-red-500 text-xl">*</span>
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id={`file-name-fs${index + 1}`}
+                      name={`file-name-fs${index + 1}`}
+                      type="text"
+                      value={fileObj.name}
+                      onChange={(e) => handleInputChange(e, index, "name")}
+                      required
+                      placeholder="Enter File Name..."
+                      className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                </div>
 
-            {/*Type of File*/}
-            <div className="mt-1.5">
-              <label
-                htmlFor="file-type-fs1"
-                className="block text-sm leading-6 text-gray-600"
-              >
-                Type of File <span className="text-red-500 text-xl">*</span>
-              </label>
-              <div className="mt-1">
-                <select
-                  id="file-type-fs1"
-                  name="file-type-fs1"
-                  value={files.file1.type}
-                  onChange={(e) => handleInputChange(e, "type", 1)}
-                  required
-                  autoComplete="file Type"
-                  placeholder="Type of file"
-                  className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
-                >
-                  <option value={"pdf"}>pdf</option>
-                  <option value={"image"}>image</option>
-                </select>
-              </div>
-              <p className="text-xs text-gray-400">(img,pdf.)</p>
-            </div>
+                {/* Type of File */}
+                <div className="mt-1.5 ">
+                  <label
+                    htmlFor={`file-type-fs${index + 1}`}
+                    className="block text-sm leading-6 text-gray-600"
+                  >
+                    Type of File <span className="text-red-500 text-xl">*</span>
+                  </label>
+                  <div className="mt-1">
+                    <select
+                      id={`file-type-fs${index + 1}`}
+                      name={`file-type-fs${index + 1}`}
+                      value={fileObj.type}
+                      onChange={(e) => handleInputChange(e, index, "type")}
+                      required
+                      placeholder="Type of file"
+                      className="block w-full hover:cursor-pointer rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
+                    >
+                      <option value="pdf">PDF</option>
+                      <option value="image">Image</option>
+                    </select>
+                  </div>
+                  <p className="text-xs text-gray-400">(img, pdf.)</p>
+                </div>
 
-            {/*Upload Document*/}
-            <div className="mt-1.5">
-              <label
-                htmlFor="file-fs1"
-                className="block text-sm leading-6 text-gray-600"
-              >
-                Upload Document <span className="text-red-500 text-xl">*</span>
-              </label>
-              <div className="mt-1">
-                <input
-                  id="file-fs1"
-                  name="file-fs1"
-                  type="file"
-                  autoComplete="family-name"
-                  onChange={(e) => handleFileChange(e, 1)}
-                  required
-                  className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
-                />
+                {/* Upload Document */}
+                <div className="mt-1.5">
+                  <label
+                    htmlFor={`file-fs${index + 1}`}
+                    className="block text-sm leading-6 text-gray-600"
+                  >
+                    Upload Document{" "}
+                    <span className="text-red-500 text-xl">*</span>
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      id={`file-fs${index + 1}`}
+                      name={`file-fs${index + 1}`}
+                      type="file"
+                      onChange={(e) => handleFileChange(e, index)}
+                      required
+                      className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-5 flex items-center justify-start">
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFile(index)}
+                    className="bg-gray-200 p-3 rounded-md"
+                  >
+                    <IoTrashOutline className="text-2xl" />
+                  </button>
+                </div>
               </div>
-            </div>
+            ))}
 
             <div className="mt-5 flex items-center justify-start">
-              <button>
+              <button
+                type="button"
+                onClick={handleAddFile}
+                className="bg-gray-200 p-3 rounded-md"
+              >
                 <FaSquarePlus className="text-5xl" />
-              </button>
-            </div>
-
-            {/* ******************** file 2 *************************** */}
-            {/* File Name */}
-            <div className="mt-1.5">
-              <label
-                htmlFor="file-name-fs2"
-                className="block text-sm leading-6 text-gray-600"
-              >
-                File Name<span className="text-red-500 text-xl">*</span>
-              </label>
-              <div className="mt-1">
-                <input
-                  id="file-name-fs2"
-                  name="file-name-fs2"
-                  type="text"
-                  value={files.file2.name}
-                  onChange={(e) => handleInputChange(e, "name", 2)}
-                  required
-                  autoComplete="given-name"
-                  placeholder="Enter File Name..."
-                  className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
-
-            {/*Type of File*/}
-            <div className="mt-1.5">
-              <label
-                htmlFor="file-type-fs2"
-                className="block text-sm leading-6 text-gray-600"
-              >
-                Type of File <span className="text-red-500 text-xl">*</span>
-              </label>
-              <div className="mt-1">
-                <select
-                  id="country"
-                  name="file-type-fs2"
-                  value={files.file2.type}
-                  onChange={(e) => handleInputChange(e, "type", 2)}
-                  required
-                  autoComplete="file-type-fs2"
-                  placeholder="Type of file"
-                  className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
-                >
-                  <option value={"pdf"}>pdf</option>
-                  <option value={"image"}>image</option>
-                </select>
-              </div>
-              <p className="text-xs text-gray-400">(img,pdf.)</p>
-            </div>
-
-            {/*Upload Document*/}
-            <div className="mt-1.5">
-              <label
-                htmlFor="file-fs2"
-                className="block text-sm leading-6 text-gray-600"
-              >
-                Upload Document <span className="text-red-500 text-xl">*</span>
-              </label>
-              <div className="mt-1">
-                <input
-                  id="file-fs2"
-                  name="file-fs2"
-                  type="file"
-                  onChange={(e) => handleFileChange(e, 2)}
-                  required
-                  autoComplete="family-name"
-                  className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
-
-            <div className="mt-5 flex items-center justify-start">
-              <button className="bg-gray-200 p-3 rounded-md">
-                <IoTrashOutline className="text-2xl" />
               </button>
             </div>
           </div>
@@ -567,8 +516,7 @@ export default function Login() {
             {fileErrors.file2}
           </p>
         )}
-    
-     
+
         {isSuccess && (
           <p className="mt-5 text-green-700 flex gap-x-2 items-centers text-3xl justify-center">
             <AiOutlineCheckCircle className="text-3xl" />

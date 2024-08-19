@@ -4,10 +4,7 @@ import upload from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
-router.post(
-  "/",
-  upload.fields([{ name: "file1" }, { name: "file2" }]),
-  createUser
-);
+// Handle multiple file uploads under the field name "files"
+router.post("/", upload.array("files", 10), createUser);
 
 export default router;
