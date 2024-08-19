@@ -4,7 +4,8 @@ import UserDetail from "../models/user.model.js";
 
 
 export const createUser = async (req, res) => {
-  console.log(req.body);
+console.log(req.body);
+console.log(req.body);
   try {
     const {
       firstName,
@@ -23,13 +24,13 @@ export const createUser = async (req, res) => {
       fullName: `${firstName} ${lastName}`,
       email: email.trim().toLowerCase(),
       dob: dob.trim().toLowerCase(),
-      resAddress: ressAddress.trim().toLowerCase(),
-      perAddress: perAddress.trim().toLowerCase(),
+      resAddress: JSON.parse(ressAddress),
+      perAddress: JSON.parse(perAddress),
       file1,
       file2,
     });
-
-    await userDetail.save();
+      // console.log(userDetail);
+    // await userDetail.save();
     res
       .status(201)
       .json({ message: "User details submitted successfully", userDetail });

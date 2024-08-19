@@ -3,6 +3,7 @@ import { useMutation } from "react-query";
 import axios from "axios";
 import { FaSquarePlus } from "react-icons/fa6";
 import { IoTrashOutline } from "react-icons/io5";
+import { AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai";
 
 // form Submit handler
 const submitForm = async (formData) => {
@@ -19,7 +20,6 @@ const submitForm = async (formData) => {
 };
 
 export default function Login() {
-
   const { mutate, isLoading, isError, isSuccess } = useMutation(submitForm);
   const [ageError, setAgeError] = useState("");
   const [sameAsResidential, setSameAsResidential] = useState(false);
@@ -45,6 +45,10 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+     if (ageError || fileErrors.file1 || fileErrors.file2) {
+       return;
+     }
+
     const formData = new FormData();
     formData.append("firstName", firstName);
     formData.append("lastName", lastName);
@@ -52,10 +56,9 @@ export default function Login() {
     formData.append("dob", dob);
     formData.append("ressAddress", JSON.stringify(ressAddress));
     formData.append("perAddress", JSON.stringify(perAddress));
-    if (files && files.length > 0) {
-      formData.append("file1", files[0]);
-      formData.append("file2", files[1]);
-    }
+    Object.keys(files).forEach((key) => {
+      formData.append(key, files[key]); // Append each file with its key
+    });
     mutate(formData);
   };
 
@@ -102,10 +105,31 @@ export default function Login() {
 
   const handleFileChange = (e, index) => {
     const file = e.target.files[0];
-    setFiles((prevFiles) => ({
-      ...prevFiles,
-      [`file${index}`]: { ...prevFiles[`file${index}`], file },
-    }));
+    if (file) {
+      const { type } = files[`file${index}`];
+      const allowedExtensions =
+        type === "pdf" ? ["pdf"] : ["image/jpeg", "image/png", "image/gif"];
+      const fileExtension = file.name.split(".").pop().toLowerCase();
+
+      if (
+        !allowedExtensions.includes(file.type) &&
+        !allowedExtensions.includes(fileExtension)
+      ) {
+        setFileErrors((prevErrors) => ({
+          ...prevErrors,
+          [`file${index}`]: `Invalid file type. Expected ${type} file.`,
+        }));
+      } else {
+        setFileErrors((prevErrors) => ({
+          ...prevErrors,
+          [`file${index}`]: "",
+        }));
+        setFiles((prevFiles) => ({
+          ...prevFiles,
+          [`file${index}`]: { ...prevFiles[`file${index}`], file },
+        }));
+      }
+    }
   };
 
   return (
@@ -136,6 +160,7 @@ export default function Login() {
                 onChange={(e) => setFirstName(e.target.value)}
                 type="text"
                 autoComplete="given-name"
+                required
                 placeholder="Enter your first name here ..."
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
               />
@@ -157,6 +182,7 @@ export default function Login() {
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                required
                 autoComplete="family-name"
                 placeholder="Enter your last name here ..."
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -179,6 +205,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
                 autoComplete="email"
                 placeholder="ex: myname@example.com"
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -200,6 +227,7 @@ export default function Login() {
                 name="dob"
                 value={dob}
                 onChange={handleDobChange}
+                required
                 type="date"
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
               />
@@ -231,6 +259,7 @@ export default function Login() {
                   onChange={(e) =>
                     setRessAddress({ ...ressAddress, street1: e.target.value })
                   }
+                  required
                   autoComplete="residentail-address1"
                   placeholder="Enter your first name here ..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -309,6 +338,7 @@ export default function Login() {
                           street1: e.target.value,
                         })
                       }
+                      required
                       autoComplete="permanent-address1"
                       placeholder="Enter your street 1 ..."
                       className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -335,6 +365,7 @@ export default function Login() {
                           street2: e.target.value,
                         })
                       }
+                      required
                       autoComplete="permanent-address2"
                       placeholder="Enter your street 2 ..."
                       className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -366,6 +397,7 @@ export default function Login() {
                   type="text"
                   value={files.file1.name}
                   onChange={(e) => handleInputChange(e, "name", 1)}
+                  required
                   autoComplete="given-name"
                   placeholder="Enter File Name..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -387,6 +419,7 @@ export default function Login() {
                   name="file-type-fs1"
                   value={files.file1.type}
                   onChange={(e) => handleInputChange(e, "type", 1)}
+                  required
                   autoComplete="file Type"
                   placeholder="Type of file"
                   className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -413,6 +446,7 @@ export default function Login() {
                   type="file"
                   autoComplete="family-name"
                   onChange={(e) => handleFileChange(e, 1)}
+                  required
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 />
               </div>
@@ -440,6 +474,7 @@ export default function Login() {
                   type="text"
                   value={files.file2.name}
                   onChange={(e) => handleInputChange(e, "name", 2)}
+                  required
                   autoComplete="given-name"
                   placeholder="Enter File Name..."
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -461,6 +496,7 @@ export default function Login() {
                   name="file-type-fs2"
                   value={files.file2.type}
                   onChange={(e) => handleInputChange(e, "type", 2)}
+                  required
                   autoComplete="file-type-fs2"
                   placeholder="Type of file"
                   className="block w-full rounded-md border-0 px-3.5 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
@@ -486,6 +522,7 @@ export default function Login() {
                   name="file-fs2"
                   type="file"
                   onChange={(e) => handleFileChange(e, 2)}
+                  required
                   autoComplete="family-name"
                   className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
                 />
@@ -509,13 +546,19 @@ export default function Login() {
             {isLoading ? "Submiting..." : "Submit"}
           </button>
         </div>
-        {isError && (
-          <p className="text-xs text-red-500">
-            There was an error submitting the form.
+        {(isError) && (
+          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-3xl justify-center">
+            <AiOutlineCloseCircle className="text-3xl" /> There was an error
+            submitting the form.
           </p>
         )}
+        
+     
         {isSuccess && (
-          <p className="text-sm text-green-700">Form submitted successfully!</p>
+          <p className="mt-5 text-green-700 flex gap-x-2 items-centers text-3xl justify-center">
+            <AiOutlineCheckCircle className="text-3xl" />
+            Form submitted successfully!
+          </p>
         )}
       </form>
     </div>
