@@ -8,7 +8,12 @@ import { IoTrashOutline } from "react-icons/io5";
 const submitForm = async (formData) => {
   const response = await axios.post(
     "http://localhost:8000/api/v1/user-detail",
-    formData
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
   return response.data;
 };
@@ -45,12 +50,12 @@ export default function Login() {
     formData.append("lastName", lastName);
     formData.append("email", email);
     formData.append("dob", dob);
-    formData.append("ressAddress", JSON.stringify(ressAddress)); // stringify the object
-    formData.append("perAddress", JSON.stringify(perAddress)); // stringify the object
-    Array.from(files).forEach((file, index) => {
-      formData.append(`file${index + 1}`, file);
-    });
-
+    formData.append("ressAddress", JSON.stringify(ressAddress));
+    formData.append("perAddress", JSON.stringify(perAddress));
+    if (files && files.length > 0) {
+      formData.append("file1", files[0]);
+      formData.append("file2", files[1]);
+    }
     mutate(formData);
   };
 

@@ -4,33 +4,29 @@ import UserDetail from "../models/user.model.js";
 
 
 export const createUser = async (req, res) => {
+  console.log(req.body);
   try {
     const {
-      name,
+      firstName,
+      lastName,
       email,
       dob,
-      resAddress,
+      ressAddress,
       perAddress,
-      file_Name_fs1,
-      file_Type_fs1,
-      file_Upload_fs1,
-      file_Name_fs2,
-      file_Type_fs2,
-      file_Upload_fs2,
     } = req.body;
 
+    // Handle file uploads
+    const file1 = req.files?.file1 ? req.files.file1[0].path : null;
+    const file2 = req.files?.file2 ? req.files.file2[0].path : null;
+
     const userDetail = new UserDetail({
-      name,
-      email,
-      dob,
-      resAddress,
-      perAddress,
-      file_Name_fs1,
-      file_Type_fs1,
-      file_Upload_fs1: req.file.path,
-      file_Name_fs2,
-      file_Type_fs2,
-      file_Upload_fs2: req.file.path,
+      fullName: `${firstName} ${lastName}`,
+      email: email.trim().toLowerCase(),
+      dob: dob.trim().toLowerCase(),
+      resAddress: ressAddress.trim().toLowerCase(),
+      perAddress: perAddress.trim().toLowerCase(),
+      file1,
+      file2,
     });
 
     await userDetail.save();

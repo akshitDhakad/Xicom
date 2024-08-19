@@ -4,6 +4,10 @@ import upload from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", upload.single("fileUpload"), createUser);
+router.post(
+  "/",
+  upload.fields([{ name: "file1" }, { name: "file2" }]),
+  createUser
+);
 
 export default router;
