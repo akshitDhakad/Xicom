@@ -4,7 +4,7 @@ import path from "path";
 // Multer configuration
 const storage = multer.diskStorage({
     distination: function(req, file, cb){
-        cb(null, path.join(__dirname, "../../public/uploads"));
+        cb(null, path.join(__dirname, "public/uploads"));
     },
     filename: function(req,file,cb){
         cb(null, Date.now() + "-" + file.originalname);

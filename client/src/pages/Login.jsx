@@ -23,7 +23,10 @@ export default function Login() {
   const { mutate, isLoading, isError, isSuccess } = useMutation(submitForm);
   const [ageError, setAgeError] = useState("");
   const [sameAsResidential, setSameAsResidential] = useState(false);
-
+  const [fileErrors, setFileErrors] = useState({
+    file1: "",
+    file2: "",
+  });
   // form input fileds
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -546,13 +549,25 @@ export default function Login() {
             {isLoading ? "Submiting..." : "Submit"}
           </button>
         </div>
-        {(isError) && (
+        {isError && (
           <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-3xl justify-center">
             <AiOutlineCloseCircle className="text-3xl" /> There was an error
             submitting the form.
           </p>
         )}
-        
+        {fileErrors.file1 && (
+          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-3xl justify-center">
+            <AiOutlineCloseCircle className="text-3xl" />
+            {fileErrors.file1}
+          </p>
+        )}
+        {fileErrors.file2 && (
+          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-3xl justify-center">
+            <AiOutlineCloseCircle className="text-3xl" />
+            {fileErrors.file2}
+          </p>
+        )}
+    
      
         {isSuccess && (
           <p className="mt-5 text-green-700 flex gap-x-2 items-centers text-3xl justify-center">
