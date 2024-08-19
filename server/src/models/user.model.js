@@ -51,7 +51,6 @@ const userDetailSchema = new Schema({
     lowercase: true,
     trim: true,
   },
-
   files: [fileSchema],
 });
 

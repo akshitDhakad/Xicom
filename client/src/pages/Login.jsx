@@ -23,6 +23,7 @@ const submitForm = async (formData) => {
 export default function Login() {
   const { mutate, isLoading, isError, isSuccess } = useMutation(submitForm);
   const [ageError, setAgeError] = useState("");
+  const [emailError, setEmailError] = useState(false);
   const [sameAsResidential, setSameAsResidential] = useState(false);
   const [fileErrors, setFileErrors] = useState({
     file1: "",
@@ -46,9 +47,23 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    //function to validate the age
      if (ageError) {
+      setDob("");
        return;
      }
+
+    // function to validate the email 
+    const validateEmail = (email) => {
+      const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return regex.test(email);
+    };
+
+    if(!validateEmail(email)){
+      setEmailError(true);
+      return ;
+    }
+
 
     const formData = new FormData();
     formData.append("firstName", firstName);
@@ -58,12 +73,13 @@ export default function Login() {
     formData.append("ressAddress", JSON.stringify(ressAddress));
     formData.append("perAddress", JSON.stringify(perAddress));
 
-    files.forEach((fileObj, index) => {
-      formData.append(`file${index + 1}`, fileObj.file);
-      formData.append(`name${index + 1}`, fileObj.name);
-      formData.append(`type${index + 1}`, fileObj.type);
+    files.forEach((fileObj) => {
+      formData.append("files", fileObj.file);
+      formData.append("fileNames", fileObj.name); // Assuming you're capturing file names separately.
+      formData.append("fileTypes", fileObj.type); // Assuming you're capturing file types separately.
     });
 
+    console.log(files)
     mutate(formData);
   };
 
@@ -221,6 +237,7 @@ export default function Login() {
                 className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6"
               />
             </div>
+            {emailError && <p className="text-red-500 text-xs">Enter a valid email address.</p>}
           </div>
 
           {/* Date of Birth  */}

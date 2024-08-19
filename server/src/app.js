@@ -1,6 +1,6 @@
 import express from "express"
 import cors from "cors"
-// import cookieParser from "cookie-parses"
+
 
 
 const app = express ()
@@ -20,7 +20,7 @@ app.use(express.static("public"));
 
 
 //routes declaration
-import userRoutes from "./routes/user.routes.js";
+import userRoutes from "./routes/user.route.js";
 app.use("/api/v1/user-detail", userRoutes);
 
 export {app}
