@@ -1,10 +1,9 @@
-import express from "express";
+// controllers/userController.js
+
 import UserDetail from "../models/user.model.js";
-import upload from "../middlewares/uploadMiddleware.js";
 
-const router = express.Router();
 
-router.post("/create-user", upload.single("fileUpload"), async (req, res) => {
+export const createUser = async (req, res) => {
   try {
     const {
       name,
@@ -19,6 +18,7 @@ router.post("/create-user", upload.single("fileUpload"), async (req, res) => {
       file_Type_fs2,
       file_Upload_fs2,
     } = req.body;
+
     const userDetail = new UserDetail({
       name,
       email,
@@ -32,11 +32,14 @@ router.post("/create-user", upload.single("fileUpload"), async (req, res) => {
       file_Type_fs2,
       file_Upload_fs2: req.file.path,
     });
+
     await userDetail.save();
-    res.status(201).json({ message: "User details submitted sucessfully", userDetail });
+    res
+      .status(201)
+      .json({ message: "User details submitted successfully", userDetail });
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Error creating user Details", details: error.message });
+      .json({ error: "Error creating user details", details: error.message });
   }
-});
+};

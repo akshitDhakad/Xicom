@@ -6,7 +6,10 @@ import { IoTrashOutline } from "react-icons/io5";
 
 // form Submit handler
 const submitForm = async (formData) => {
-  const response = await axios.post("/", formData);
+  const response = await axios.post(
+    "http://localhost:8000/api/v1/user-detail",
+    formData
+  );
   return response.data;
 };
 
