@@ -52,6 +52,6 @@ const userDetailSchema = new Schema({
     trim: true,
   },
   files: [fileSchema],
-});
+},{ timestamps: true });
 
 export default mongoose.model("UserDetail", userDetailSchema);

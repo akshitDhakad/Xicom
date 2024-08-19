@@ -25,11 +25,8 @@ export default function UserForm() {
   const { mutate, isLoading, isError, isSuccess } = useMutation(submitForm);
   const [ageError, setAgeError] = useState("");
   const [emailError, setEmailError] = useState(false);
+  const [fileErrors, setFileErrors] = useState("");
   const [sameAsResidential, setSameAsResidential] = useState(false);
-  const [fileErrors, setFileErrors] = useState({
-    file1: "",
-    file2: "",
-  });
   // form input fileds
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -148,7 +145,7 @@ export default function UserForm() {
         !allowedExtensions.includes(fileExtension)
       ) {
         // Handle invalid file type
-        alert(`Invalid file type. Expected ${type} file.`);
+        setFileErrors(`Invalid file type. Expected ${type} file.`);
       } else {
         const newFiles = [...files];
         newFiles[index].file = file;
@@ -521,26 +518,19 @@ export default function UserForm() {
           </button>
         </div>
         {isError && (
-          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-3xl justify-center">
+          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-xl justify-center">
             <AiOutlineCloseCircle className="text-3xl" /> There was an error
             submitting the form.
           </p>
         )}
-        {fileErrors.file1 && (
-          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-3xl justify-center">
-            <AiOutlineCloseCircle className="text-3xl" />
-            {fileErrors.file1}
+        {fileErrors && (
+          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-xl justify-center">
+            <AiOutlineCloseCircle className="text-3xl" /> There was an error
+            {fileErrors}
           </p>
         )}
-        {fileErrors.file2 && (
-          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-3xl justify-center">
-            <AiOutlineCloseCircle className="text-3xl" />
-            {fileErrors.file2}
-          </p>
-        )}
-
         {isSuccess && (
-          <p className="mt-5 text-green-700 flex gap-x-2 items-centers text-3xl justify-center">
+          <p className="mt-5 text-green-700 flex gap-x-2 items-centers text-xl justify-center">
             <AiOutlineCheckCircle className="text-3xl" />
             Form submitted successfully!
           </p>
