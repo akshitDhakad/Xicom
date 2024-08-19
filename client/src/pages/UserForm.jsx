@@ -21,12 +21,22 @@ const submitForm = async (formData) => {
 };
 
 export default function UserForm() {
-
+  const [error, setError] = useState("");
   const { mutate, isLoading, isError, isSuccess } = useMutation(submitForm);
   const [ageError, setAgeError] = useState("");
   const [emailError, setEmailError] = useState(false);
   const [fileErrors, setFileErrors] = useState("");
   const [sameAsResidential, setSameAsResidential] = useState(false);
+
+  const handleError = (error) => {
+    setError(error);
+    setTimeout(() => {
+      setError("");
+      setFileErrors("");
+    }, 5000);
+  }
+
+
   // form input fileds
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -50,7 +60,12 @@ export default function UserForm() {
       setDob("");
       return;
     }
+    if(!firstName || !lastName || !email || !dob || !ressAddress.street1 || !ressAddress.street2 || !perAddress.street1 || !perAddress.street2){
+      handleError("All fields are required");
+      return;
 
+    }
+    
     // function to validate the email
     const validateEmail = (email) => {
       const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -59,6 +74,11 @@ export default function UserForm() {
 
     if (!validateEmail(email)) {
       setEmailError(true);
+      return;
+    }
+
+    if(files.some((fileObj) => !fileObj.file)){
+      handleError("Please upload files");
       return;
     }
 
@@ -72,8 +92,8 @@ export default function UserForm() {
 
     files.forEach((fileObj) => {
       formData.append("files", fileObj.file);
-      formData.append("fileNames", fileObj.name); // Assuming you're capturing file names separately.
-      formData.append("fileTypes", fileObj.type); // Assuming you're capturing file types separately.
+      formData.append("fileNames", fileObj.name);
+      formData.append("fileTypes", fileObj.type); 
     });
 
     console.log(files);
@@ -145,7 +165,8 @@ export default function UserForm() {
         !allowedExtensions.includes(fileExtension)
       ) {
         // Handle invalid file type
-        setFileErrors(`Invalid file type. Expected ${type} file.`);
+        handleError(`Invalid file type. Expected ${type} file.`);
+       
       } else {
         const newFiles = [...files];
         newFiles[index].file = file;
@@ -474,6 +495,7 @@ export default function UserForm() {
                     <input
                       id={`file-fs${index + 1}`}
                       name={`file-fs${index + 1}`}
+                      
                       type="file"
                       onChange={(e) => handleFileChange(e, index)}
                       required
@@ -521,6 +543,12 @@ export default function UserForm() {
           <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-xl justify-center">
             <AiOutlineCloseCircle className="text-3xl" /> There was an error
             submitting the form.
+          </p>
+        )}
+        {error && (
+          <p className="mt-5 text-red-500 flex gap-x-2 items-centers text-xl justify-center">
+            <AiOutlineCloseCircle className="text-3xl" /> There was an error
+            {error}
           </p>
         )}
         {fileErrors && (
